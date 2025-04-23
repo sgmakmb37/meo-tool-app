@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: meo-tool
+    env: python
+    buildCommand: ""
+    startCommand: python flask_reply_ui_full.py
+    autoDeploy: true
