@@ -65,48 +65,40 @@ TEMPLATE = """
       margin-bottom: 1.5rem;
     }
 
-    .top-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
+    .filter-area {
       margin-bottom: 1rem;
     }
 
-    .top-controls {
+    .filter-area select {
+      padding: 0.5rem;
+      margin-right: 1rem;
+      font-size: 1rem;
+      border-radius: 6px;
+      border: 1px solid #c9d1db;
+    }
+
+    .button-area {
       display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 1rem;
+      gap: 0.7rem;
+      margin-bottom: 2rem;
     }
 
-    .top-bar a {
+    .button-area button,
+    .button-area a {
       text-decoration: none;
-      margin-left: 1rem;
-      color: #5b6b8a;
-      font-weight: bold;
-    }
-
-    select {
-      padding: 0.5rem;
-      border: 1px solid #c9d1db;
-      border-radius: 6px;
-      background: #fff;
-      font-size: 1rem;
-    }
-
-    button {
-      padding: 0.5rem 1rem;
       background: #5b6b8a;
       color: white;
       border: none;
       border-radius: 6px;
-      cursor: pointer;
+      padding: 0.6rem 1rem;
       font-weight: bold;
+      cursor: pointer;
       transition: background 0.3s ease;
     }
 
-    button:hover {
+    .button-area button:hover,
+    .button-area a:hover {
       background: #8a9bbf;
     }
 
@@ -165,26 +157,16 @@ TEMPLATE = """
     }
 
     @media (max-width: 600px) {
-      body {
-        padding: 1rem;
-      }
-      .top-bar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-      }
-      .top-controls {
-        flex-direction: column;
-        align-items: flex-start;
-      }
+      body { padding: 1rem; }
+      .button-area { flex-direction: column; align-items: stretch; }
     }
   </style>
 </head>
 <body>
   <h2>返信管理画面（{{ current_user.id }}）</h2>
 
-  <form method="get" class="top-bar">
-    <div class="top-controls">
+  <form method="get">
+    <div class="filter-area">
       <label>店舗：
         <select name="store">
           {% for sid in current_user.store_ids %}
@@ -199,11 +181,13 @@ TEMPLATE = """
           <option value="posted" {% if selected_filter == "posted" %}selected{% endif %}>投稿済みのみ</option>
         </select>
       </label>
-      <button formaction="/post_all?store={{ selected_store }}&filter={{ selected_filter }}" formmethod="post">✅ 一括投稿</button>
     </div>
-    <div class="top-controls">
-      <button type="button" class="danger-button" onclick="location.href='/logout'">🚪 ログアウト</button>
-      <button type="button" onclick="location.href='/download?store={{ selected_store }}'">📥 CSV出力</button>
+
+    <div class="button-area">
+      <button formaction="/post_all?store={{ selected_store }}&filter={{ selected_filter }}" formmethod="post">✅ 一括投稿</button>
+      <button formaction="/refresh?store={{ selected_store }}&filter={{ selected_filter }}" formmethod="post">🔄 更新</button>
+      <a href="/download?store={{ selected_store }}">📥 CSV出力</a>
+      <a href="/logout" class="danger-button">🚪 ログアウト</a>
     </div>
   </form>
 
