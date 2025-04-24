@@ -47,9 +47,9 @@ TEMPLATE = """
   <link rel="apple-touch-icon" href="/static/icon.png">
   <link rel="icon" type="image/png" href="/static/icon.png">
   <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#5b6b8a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
@@ -108,6 +108,14 @@ TEMPLATE = """
 
     button:hover {
       background: #8a9bbf;
+    }
+
+    .danger-button {
+      background-color: #d9534f;
+    }
+
+    .danger-button:hover {
+      background-color: #c9302c;
     }
 
     .card {
@@ -192,11 +200,10 @@ TEMPLATE = """
         </select>
       </label>
       <button formaction="/post_all?store={{ selected_store }}&filter={{ selected_filter }}" formmethod="post">✅ 一括投稿</button>
-      <button formaction="/refresh?store={{ selected_store }}" formmethod="post">🔄 最新取得</button>
     </div>
-    <div>
-      <a href="/logout">ログアウト</a>
-      <a href="/download?store={{ selected_store }}">CSV出力</a>
+    <div class="top-controls">
+      <button type="button" class="danger-button" onclick="location.href='/logout'">🚪 ログアウト</button>
+      <button type="button" onclick="location.href='/download?store={{ selected_store }}'">📥 CSV出力</button>
     </div>
   </form>
 
@@ -240,14 +247,33 @@ def index():
     filter_mode = request.args.get("filter", "all")
     data = load_data()
 
-    if filter_mode == "posted":
-        replies = [(i, r) for i, r in enumerate(data) if r.get("store_id") == store and r.get("posted") and not r.get("deleted")]
-    elif filter_mode == "unposted":
-        replies = [(i, r) for i, r in enumerate(data) if r.get("store_id") == store and not r.get("posted") and not r.get("deleted")]
-    else:
-        replies = [(i, r) for i, r in enumerate(data) if r.get("store_id") == store and not r.get("deleted")]
+    # ⭐ starRating を英語→数字に変換
+    rating_map = {"ONE": "1", "TWO": "2", "THREE": "3", "FOUR": "4", "FIVE": "5"}
+    for r in data:
+        if r.get("starRating") in rating_map:
+            r["starRating"] = rating_map[r["starRating"]]
 
-    return render_template_string(TEMPLATE, replies=replies, selected_store=store, selected_filter=filter_mode, edit_index=None)
+    # ✅ フィルター処理（未投稿、投稿済みなど）
+    filtered = [
+        (i, r) for i, r in enumerate(data)
+        if r.get("store_id") == store and not r.get("deleted")
+        and (
+            filter_mode == "all"
+            or (filter_mode == "unposted" and not r.get("posted"))
+            or (filter_mode == "posted" and r.get("posted"))
+        )
+    ]
+
+    # ✅ 新着順（データの末尾が新しいと仮定）
+    filtered = list(reversed(filtered))
+
+    return render_template_string(
+        TEMPLATE,
+        replies=filtered,
+        selected_store=store,
+        selected_filter=filter_mode,
+        edit_index=None
+    )
 
 @app.route("/edit/<int:index>", methods=["POST"])
 @login_required
