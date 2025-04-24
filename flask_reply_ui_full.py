@@ -50,82 +50,16 @@ TEMPLATE = """
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
-      background: #e0f0f8;
+      background: #f4f6f9;
       color: #1d2f4f;
       margin: 0;
       padding: 2rem;
     }
 
     h2 {
-      color: #1d2f4f;
+      color: #5b6b8a;
       text-align: center;
-      margin-bottom: 1rem;
-    }
-
-    form, .card {
-      animation: fadeInUp 0.4s ease-in-out;
-    }
-
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .card {
-      background: #e0f0f8;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 12px;
-      box-shadow: 6px 6px 12px #c0d0e0, -6px -6px 12px #ffffff;
-      border-left: 6px solid #3a5b83;
-    }
-
-    .posted { border-left-color: #28a745; }
-    .deleted { display: none; }
-
-    textarea {
-      width: 100%;
-      height: 100px;
-      padding: 0.5rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      box-shadow: inset 2px 2px 5px #c0d0e0, inset -2px -2px 5px #ffffff;
-      resize: vertical;
-    }
-
-    .reply {
-      white-space: pre-wrap;
-      background: #fff;
-      padding: 0.8rem;
-      border-radius: 8px;
-      margin-bottom: 0.5rem;
-      box-shadow: inset 2px 2px 5px #c0d0e0, inset -2px -2px 5px #ffffff;
-    }
-
-    .actions button {
-      background: #3a5b83;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      margin-right: 0.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-      transition: all 0.2s ease-in-out;
-    }
-
-    .actions button:hover {
-      background: #a7c6e7;
-      color: #1d2f4f;
-    }
-
-    select {
-      padding: 0.4rem;
-      margin: 0 0.5rem 1rem 0;
-      border-radius: 6px;
-      box-shadow: inset 2px 2px 5px #c0d0e0, inset -2px -2px 5px #ffffff;
-      border: none;
+      margin-bottom: 1.5rem;
     }
 
     .top-bar {
@@ -136,17 +70,87 @@ TEMPLATE = """
       margin-bottom: 1rem;
     }
 
+    .top-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+    }
+
     .top-bar a {
       text-decoration: none;
       margin-left: 1rem;
-      color: #3a5b83;
+      color: #5b6b8a;
+      font-weight: bold;
     }
 
-    .top-controls {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+    select {
+      padding: 0.5rem;
+      border: 1px solid #c9d1db;
+      border-radius: 6px;
+      background: #fff;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 0.5rem 1rem;
+      background: #5b6b8a;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #8a9bbf;
+    }
+
+    .card {
+      background: white;
+      padding: 1rem;
+      border-left: 5px solid #8a9bbf;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+      animation: fadeInUp 0.4s ease-in-out;
+    }
+
+    .posted {
+      border-left-color: #28a745;
+    }
+
+    .deleted {
+      display: none;
+    }
+
+    .reply {
+      background: #f4f6f9;
+      padding: 0.8rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      margin: 0.5rem 0;
+      font-size: 0.95rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      font-size: 1rem;
+      padding: 0.5rem;
+      border: 1px solid #c9d1db;
+      border-radius: 6px;
+      resize: vertical;
+    }
+
+    .actions button {
+      margin-right: 0.5rem;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 600px) {
@@ -156,6 +160,7 @@ TEMPLATE = """
       .top-bar {
         flex-direction: column;
         align-items: flex-start;
+        gap: 1rem;
       }
       .top-controls {
         flex-direction: column;
@@ -165,7 +170,7 @@ TEMPLATE = """
   </style>
 </head>
 <body>
-  <h2>返信管理画面（ログイン中：{{ current_user.id }}）</h2>
+  <h2>返信管理画面（{{ current_user.id }}）</h2>
 
   <form method="get" class="top-bar">
     <div class="top-controls">
@@ -222,6 +227,7 @@ TEMPLATE = """
 </body>
 </html>
 """
+
 
 @app.route("/")
 @login_required
@@ -327,13 +333,13 @@ def login():
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ログイン</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ログイン</title>
   <style>
     body {
-      background: #e0f0f8;
       margin: 0;
       padding: 0;
+      background: #f4f6f9;
       font-family: "Segoe UI", sans-serif;
       display: flex;
       justify-content: center;
@@ -342,53 +348,63 @@ def login():
     }
 
     .login-box {
-      background: #e0f0f8;
+      background: #ffffff;
       padding: 2rem;
-      border-radius: 15px;
-      box-shadow: 8px 8px 16px #c0d0e0, -8px -8px 16px #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: 90%;
       max-width: 400px;
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h2 {
+      color: #5b6b8a;
       text-align: center;
-      color: #1d2f4f;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
 
     label {
       display: block;
       margin-bottom: 1rem;
-      color: #1d2f4f;
+      color: #5b6b8a;
+      font-weight: 600;
     }
 
     input {
       width: 100%;
       padding: 0.7rem;
+      border: 1px solid #c9d1db;
+      border-radius: 6px;
       font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      box-shadow: inset 2px 2px 5px #c0d0e0, inset -2px -2px 5px #ffffff;
-      background: #f0f8ff;
+      background: #f9fafc;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #8a9bbf;
+      background: #ffffff;
     }
 
     button {
       width: 100%;
       padding: 0.8rem;
-      background: #3a5b83;
+      background: #5b6b8a;
       color: white;
       font-weight: bold;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       margin-top: 1rem;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-      transition: 0.3s;
+      transition: background 0.3s ease;
     }
 
     button:hover {
-      background: #a7c6e7;
-      color: #1d2f4f;
+      background: #8a9bbf;
     }
 
     .error {
@@ -415,6 +431,7 @@ def login():
 </body>
 </html>
 """, error=error)
+
 
 
 @app.route("/logout")
