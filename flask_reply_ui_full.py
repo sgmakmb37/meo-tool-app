@@ -323,14 +323,99 @@ def login():
             return redirect("/")
         error = "ログイン失敗"
     return render_template_string("""
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ログイン</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #e0f0f8;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-box {
+      background: #e0f0f8;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 8px 8px 16px #c0d0e0, -8px -8px 16px #ffffff;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #1d2f4f;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 1rem;
+      color: #1d2f4f;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      box-shadow: inset 2px 2px 5px #c0d0e0, inset -2px -2px 5px #ffffff;
+      background: #f0f8ff;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.8rem;
+      background: #3a5b83;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 1rem;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #a7c6e7;
+      color: #1d2f4f;
+    }
+
+    .error {
+      color: red;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
     <h2>ログイン</h2>
-    {% if error %}<p style="color:red;">{{ error }}</p>{% endif %}
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
     <form method="post">
-      <label>ユーザー名: <input name="username"></label><br>
-      <label>パスワード: <input name="password" type="password"></label><br>
+      <label>ユーザー名:
+        <input name="username" required>
+      </label>
+      <label>パスワード:
+        <input name="password" type="password" required>
+      </label>
       <button type="submit">ログイン</button>
     </form>
-    """, error=error)
+  </div>
+</body>
+</html>
+""", error=error)
+
 
 @app.route("/logout")
 @login_required
