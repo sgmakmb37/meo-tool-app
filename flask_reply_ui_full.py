@@ -186,5 +186,8 @@ def logout():
     logout_user()
     return redirect("/login")
 
-if __name__ == "__main__":
-    app.run(port=8080)
+if __name__ == '__main__':
+    import os
+    port = int(os.environ.get('PORT', 8080))  # Renderが設定するポートを使う
+    app.run(host='0.0.0.0', port=port)
+
