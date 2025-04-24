@@ -328,6 +328,7 @@ def login():
             login_user(User(request.form["username"], u["store_ids"]))
             return redirect("/")
         error = "ログイン失敗"
+
     return render_template_string("""
 <!DOCTYPE html>
 <html lang="ja">
@@ -349,11 +350,11 @@ def login():
 
     .login-box {
       background: #ffffff;
-      padding: 2rem;
+      padding: 1.8rem;
       border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 350px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 360px;
       animation: fadeIn 0.6s ease-in-out;
     }
 
@@ -375,12 +376,16 @@ def login():
       font-weight: 600;
     }
 
-    input {
+    input, button {
       width: 100%;
+      box-sizing: border-box;
+      font-size: 1rem;
+    }
+
+    input {
       padding: 0.7rem;
       border: 1px solid #c9d1db;
       border-radius: 6px;
-      font-size: 1rem;
       background: #f9fafc;
     }
 
@@ -391,7 +396,6 @@ def login():
     }
 
     button {
-      width: 100%;
       padding: 0.8rem;
       background: #5b6b8a;
       color: white;
@@ -412,13 +416,13 @@ def login():
       margin-bottom: 1rem;
       text-align: center;
     }
-    @media (max-width: 400px) {
-  .login-box {
-    padding: 1.5rem;
-    max-width: 300px;
-  }
-}
 
+    @media (max-width: 400px) {
+      .login-box {
+        padding: 1.2rem;
+        max-width: 90vw;
+      }
+    }
   </style>
 </head>
 <body>
@@ -438,8 +442,6 @@ def login():
 </body>
 </html>
 """, error=error)
-
-
 
 @app.route("/logout")
 @login_required
