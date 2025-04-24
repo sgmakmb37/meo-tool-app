@@ -46,6 +46,12 @@ TEMPLATE = """
 <head>
   <meta charset="UTF-8">
   <title>返信管理</title>
+  <!-- ホーム画面アイコン用 -->
+  <link rel="apple-touch-icon" href="/static/icon.png">
+  <link rel="icon" type="image/png" href="/static/icon.png">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#5b6b8a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
