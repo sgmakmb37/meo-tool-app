@@ -9,7 +9,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
 
-# 🔐 ダミーユーザー設定
+# 🔐 ダミーユーザー
 users = {
     "admin": {"password": "adminpass", "store_ids": ["store001", "store002"]}
 }
@@ -22,10 +22,8 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
-    user = users.get(user_id)
-    if user:
-        return User(user_id, user["store_ids"])
-    return None
+    u = users.get(user_id)
+    return User(user_id, u["store_ids"]) if u else None
 
 DATA_FILE = "approved_replies.json"
 
@@ -39,20 +37,19 @@ def save_data(data):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-# 🔽 TEMPLATE = """...""" をここに貼ってください
+# 🔽 HTMLテンプレート
 TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <title>返信管理</title>
-  <!-- ホーム画面アイコン用 -->
   <link rel="apple-touch-icon" href="/static/icon.png">
   <link rel="icon" type="image/png" href="/static/icon.png">
   <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#5b6b8a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <style>
     body {
       font-family: "Segoe UI", sans-serif;
@@ -195,6 +192,7 @@ TEMPLATE = """
         </select>
       </label>
       <button formaction="/post_all?store={{ selected_store }}&filter={{ selected_filter }}" formmethod="post">✅ 一括投稿</button>
+      <button formaction="/refresh?store={{ selected_store }}" formmethod="post">🔄 最新取得</button>
     </div>
     <div>
       <a href="/logout">ログアウト</a>
@@ -234,35 +232,22 @@ TEMPLATE = """
 </html>
 """
 
-
 @app.route("/")
 @login_required
 def index():
     store = request.args.get("store") or current_user.current_store
-    filter_mode = request.args.get("filter", "all")
     current_user.current_store = store
-    data = load_data()
-    filtered = [
-        (i, r) for i, r in enumerate(data)
-        if r.get("store_id") == store and not r.get("deleted") and (
-            filter_mode == "all" or
-            (filter_mode == "posted" and r.get("posted")) or
-            (filter_mode == "unposted" and not r.get("posted"))
-        )
-    ]
-    return render_template_string(TEMPLATE, replies=filtered, selected_store=store, selected_filter=filter_mode, edit_index=None)
-
-@app.route("/post_all", methods=["POST"])
-@login_required
-def post_all():
-    store = request.args.get("store") or current_user.current_store
     filter_mode = request.args.get("filter", "all")
     data = load_data()
-    for r in data:
-        if r.get("store_id") == store and not r.get("deleted") and not r.get("posted"):
-            r["posted"] = True
-    save_data(data)
-    return redirect(f"/?store={store}&filter={filter_mode}")
+
+    if filter_mode == "posted":
+        replies = [(i, r) for i, r in enumerate(data) if r.get("store_id") == store and r.get("posted") and not r.get("deleted")]
+    elif filter_mode == "unposted":
+        replies = [(i, r) for i, r in enumerate(data) if r.get("store_id") == store and not r.get("posted") and not r.get("deleted")]
+    else:
+        replies = [(i, r) for i, r in enumerate(data) if r.get("store_id") == store and not r.get("deleted")]
+
+    return render_template_string(TEMPLATE, replies=replies, selected_store=store, selected_filter=filter_mode, edit_index=None)
 
 @app.route("/edit/<int:index>", methods=["POST"])
 @login_required
@@ -270,14 +255,7 @@ def edit_reply(index):
     store = request.args.get("store") or current_user.current_store
     filter_mode = request.args.get("filter", "all")
     data = load_data()
-    filtered = [
-        (i, r) for i, r in enumerate(data)
-        if r.get("store_id") == store and not r.get("deleted") and (
-            filter_mode == "all" or
-            (filter_mode == "posted" and r.get("posted")) or
-            (filter_mode == "unposted" and not r.get("posted"))
-        )
-    ]
+    filtered = [(i, r) for i, r in enumerate(data) if r.get("store_id") == store and not r.get("deleted")]
     return render_template_string(TEMPLATE, replies=filtered, selected_store=store, selected_filter=filter_mode, edit_index=index)
 
 @app.route("/save/<int:index>", methods=["POST"])
@@ -287,7 +265,7 @@ def save_reply(index):
     if index < len(data):
         data[index]["reply"] = request.form["reply"]
         save_data(data)
-    return redirect("/?store=" + current_user.current_store)
+    return redirect(f"/?store={current_user.current_store}")
 
 @app.route("/post/<int:index>", methods=["POST"])
 @login_required
@@ -296,7 +274,7 @@ def post_reply(index):
     if index < len(data):
         data[index]["posted"] = True
         save_data(data)
-    return redirect("/?store=" + current_user.current_store)
+    return redirect(f"/?store={current_user.current_store}")
 
 @app.route("/delete/<int:index>", methods=["POST"])
 @login_required
@@ -305,7 +283,40 @@ def delete_reply(index):
     if index < len(data):
         data[index]["deleted"] = True
         save_data(data)
-    return redirect("/?store=" + current_user.current_store)
+    return redirect(f"/?store={current_user.current_store}")
+
+@app.route("/post_all", methods=["POST"])
+@login_required
+def post_all():
+    store = request.args.get("store") or current_user.current_store
+    filter_mode = request.args.get("filter", "all")
+    data = load_data()
+    for r in data:
+        if r.get("store_id") == store and not r.get("deleted"):
+            r["posted"] = True
+    save_data(data)
+    return redirect(f"/?store={store}&filter={filter_mode}")
+
+@app.route("/refresh", methods=["POST"])
+@login_required
+def refresh_reviews():
+    store = request.args.get("store") or current_user.current_store
+    filter_mode = request.args.get("filter", "all")
+
+    # ダミーの新着口コミを1件追加（将来はAPI連携に差し替え）
+    data = load_data()
+    data.append({
+        "author": "新規ユーザー",
+        "starRating": "FIVE",
+        "comment": "新しく投稿された口コミです！",
+        "reply": "ご利用ありがとうございます！スタッフ一同、またのご来店をお待ちしております。",
+        "posted": False,
+        "deleted": False,
+        "store_id": store
+    })
+    save_data(data)
+
+    return redirect(f"/?store={store}&filter={filter_mode}")
 
 @app.route("/download")
 @login_required
@@ -334,7 +345,6 @@ def login():
             login_user(User(request.form["username"], u["store_ids"]))
             return redirect("/")
         error = "ログイン失敗"
-
     return render_template_string("""
 <!DOCTYPE html>
 <html lang="ja">
@@ -342,6 +352,8 @@ def login():
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ログイン</title>
+  <link rel="apple-touch-icon" href="/static/icon.png">
+  <link rel="icon" type="image/png" href="/static/icon.png">
   <style>
     body {
       margin: 0;
@@ -356,11 +368,11 @@ def login():
 
     .login-box {
       background: #ffffff;
-      padding: 1.8rem;
+      padding: 2rem;
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       width: 100%;
-      max-width: 360px;
+      max-width: 340px;
       animation: fadeIn 0.6s ease-in-out;
     }
 
@@ -380,18 +392,15 @@ def login():
       margin-bottom: 1rem;
       color: #5b6b8a;
       font-weight: 600;
-    }
-
-    input, button {
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1rem;
+      font-size: 0.95rem;
     }
 
     input {
+      width: 100%;
       padding: 0.7rem;
       border: 1px solid #c9d1db;
       border-radius: 6px;
+      font-size: 1rem;
       background: #f9fafc;
     }
 
@@ -402,6 +411,7 @@ def login():
     }
 
     button {
+      width: 100%;
       padding: 0.8rem;
       background: #5b6b8a;
       color: white;
@@ -425,8 +435,8 @@ def login():
 
     @media (max-width: 400px) {
       .login-box {
-        padding: 1.2rem;
-        max-width: 90vw;
+        padding: 1.5rem;
+        max-width: 280px;
       }
     }
   </style>
@@ -456,5 +466,5 @@ def logout():
     return redirect("/login")
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
